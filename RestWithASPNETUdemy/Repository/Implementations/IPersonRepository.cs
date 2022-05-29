@@ -10,5 +10,7 @@ namespace RestWithASPNETUdemy.Repository
         List<Person> FindAll();
         Person Update(Person person); 
         void Delete(long id);
+
+        bool Exists(long id);
     }
 }

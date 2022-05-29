@@ -1,5 +1,6 @@
 ﻿using RestWithASPNETUdemy.Model;
 using RestWithASPNETUdemy.Model.Context;
+using RestWithASPNETUdemy.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,82 +10,38 @@ namespace RestWithASPNETUdemy.Business
 {
     public class PersonBusinessImplementation : IPersonBusiness
     {
-        private MySQLContext _context;
+        private readonly IPersonRepository _repository;
 
-        public PersonBusinessImplementation(MySQLContext context)
+        public PersonBusinessImplementation(IPersonRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         public Person Create(Person person)
         {
-            try
-            {
-                _context.Add(person);
-                _context.SaveChanges();
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            return person; 
+            return _repository.Create(person);
         }
 
         public Person FindByID(long id)
         {
-            return _context.Persons.SingleOrDefault(p => p.Id == id);
+            return _repository.FindByID(id);
         }
 
         public List<Person> FindAll()
         {
-            return _context.Persons.ToList();
+            return _repository.FindAll();
         }
 
         public void Delete(long id)
         {
-            var result = _context.Persons.SingleOrDefault(p => p.Id == id);
-
-            if (result != null)
-            {
-                try
-                {
-                    _context.Persons.Remove(result);
-                    _context.SaveChanges();
-                }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-            }
+            _repository.Delete(id);
         }
 
         public Person Update(Person person)
         {
-            if (!Exists(person.Id)) return new Person();
-
-            var result = _context.Persons.SingleOrDefault(p => p.Id == person.Id);
-            if (result != null)
-            {
-                try
-                {
-                    _context.Entry(result).CurrentValues.SetValues(person);
-                    _context.SaveChanges();
-                }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-            }
-            return person;
+            return _repository.Update(person);
         }
 
-        private bool Exists(long id)
-        {
-            return _context.Persons.Any(p => p.Id == id);
-        }
 
     }
 }

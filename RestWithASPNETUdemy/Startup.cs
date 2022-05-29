@@ -4,24 +4,33 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MySqlConnector;
+using RestWithASPNETUdemy.Business;
 using RestWithASPNETUdemy.Model.Context;
-using RestWithASPNETUdemy.Services.Implementations;
+using RestWithASPNETUdemy.Repository;
+using Serilog;
+using System;
+using System.Collections.Generic;
 
 namespace RestWithASPNETUdemy
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
+        public IWebHostEnvironment Enviremonet { get; }
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add business to the container.
+        public Startup(IConfiguration configuration, IWebHostEnvironment enviremonet)
+        {
+            Configuration = configuration;
+            Enviremonet = enviremonet;
+
+            Log.Logger = new LoggerConfiguration().
+                WriteTo.Console()
+                .CreateLogger();
+        }
+
         public void ConfigureServices(IServiceCollection business)
         {
-
             business.AddControllers();
 
             var connection = Configuration["MySQLConnection:MySQLConnectionString"];
@@ -30,8 +39,15 @@ namespace RestWithASPNETUdemy
 
             business.AddApiVersioning();
 
-            // Injecao de dependencia
-            business.AddScoped<IPersonRepository, PersonBusinessImplementation>();
+            
+            business.AddScoped<IPersonBusiness, PersonBusinessImplementation>();
+            business.AddScoped<IPersonRepository, PersonRepositoryImplementation>();
+
+            if (Enviremonet.IsDevelopment())
+            {
+                MigrateDatabase(connection);
+            }
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -51,6 +67,27 @@ namespace RestWithASPNETUdemy
             {
                 endpoints.MapControllers();
             });
+        }
+
+
+        private void MigrateDatabase(string connection)
+        {
+            try
+            {
+                var evolveConnection = new MySqlConnection(connection);
+                var evolve = new Evolve.Evolve(evolveConnection, msg => Log.Information(msg))
+                {
+                    Locations = new List<string> { "db/migrations", "db/dataset" },
+                    IsEraseDisabled = true,
+
+                };
+                evolve.Migrate();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Database migration failed", ex);
+                throw;
+            }
         }
     }
 }

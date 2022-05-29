@@ -62,7 +62,7 @@ namespace RestWithASPNETUdemy.Repository
 
         public Person Update(Person person)
         {
-            if (!Exists(person.Id)) return new Person();
+            if (!Exists(person.Id)) return null;
 
             var result = _context.Persons.SingleOrDefault(p => p.Id == person.Id);
             if (result != null)
@@ -81,10 +81,11 @@ namespace RestWithASPNETUdemy.Repository
             return person;
         }
 
-        private bool Exists(long id)
+        public bool Exists(long id)
         {
             return _context.Persons.Any(p => p.Id == id);
         }
+
 
     }
 }
