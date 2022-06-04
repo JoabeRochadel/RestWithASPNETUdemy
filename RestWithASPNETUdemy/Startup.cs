@@ -6,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MySqlConnector;
 using RestWithASPNETUdemy.Business;
+using RestWithASPNETUdemy.Business.Implementations;
 using RestWithASPNETUdemy.Model.Context;
 using RestWithASPNETUdemy.Repository;
+using RestWithASPNETUdemy.Repository.Implementations;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -42,6 +44,8 @@ namespace RestWithASPNETUdemy
             
             business.AddScoped<IPersonBusiness, PersonBusinessImplementation>();
             business.AddScoped<IPersonRepository, PersonRepositoryImplementation>();
+            business.AddScoped<IBookBusiness, BookBusinessImplementation>(); 
+            business.AddScoped<IBookRepository, BookRepositoryImplementation>();
 
             if (Enviremonet.IsDevelopment())
             {
